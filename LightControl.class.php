@@ -16,6 +16,7 @@
 
 require_once 'LightSources/ILightSource.interface.php';
 require_once 'LightSources/HomeMaticHM_LC_Sw1_FM.class.php';
+require_once 'LightSources/HomeMaticHM_LC_Dim1TPBU_FM.class.php';
 require_once 'lib/LightControlVariable.class.php';
 require_once 'lib/LightControlVariableProfile.class.php';
 
