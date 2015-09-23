@@ -16,8 +16,8 @@
 
 require_once 'LightSources/ILightSource.interface.php';
 require_once 'LightSources/HomeMaticHM_LC_Sw1_FM.class.php';
-require_once 'lib/LightSourceVariable.class.php';
-require_once 'lib/LightSourceVaraibleProfile.class.php';
+require_once 'lib/LightControlVariable.class.php';
+require_once 'lib/LightControlVariableProfile.class.php';
 
 /**
 * class LightControl
@@ -154,9 +154,9 @@ class LightControl{
 		//add new light source to list, create variables and reference them to light source		
 		$tmp = array(
 			"device" => $light,
-			"runtime" => new LightSourceVariable($this->prefix . "Runtime_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[2], false, $this->archiveId, $this->debug),
-			"energy_counter" => new LightSourceVariable($this->prefix . "Energy_Counter_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[0], false, $this->archiveId, $this->debug),
-			"last_on" => new LightSourceVariable($this->prefix . "Last_On_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, NULL, false, $this->archiveId, $this->debug)
+			"runtime" => new LightControlVariable($this->prefix . "Runtime_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[2], false, $this->archiveId, $this->debug),
+			"energy_counter" => new LightControlVariable($this->prefix . "Energy_Counter_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[0], false, $this->archiveId, $this->debug),
+			"last_on" => new LightControlVariable($this->prefix . "Last_On_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, NULL, false, $this->archiveId, $this->debug)
 		);
 		
 		array_push($this->lightsources, $tmp);

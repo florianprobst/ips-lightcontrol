@@ -44,6 +44,16 @@ class HomeMaticHM_LC_Sw1_FM extends AbstractLightSource{
 	const MODEL = "HM-LC-Sw1-FM";
 	
 	/**
+	* IPS module Id
+	* 
+	* a unique ID that IP-Symcon serves for each module type / manufacturer combination
+	* 
+	* @const MODULE_ID
+  * @access private
+	*/
+	const MODULE_ID = "{EE4A81C6-5C90-4DB7-AD2F-F6BBD521412E}";
+	
+	/**
   * HomeMatic unique serial number / id without channel
   *
   * @var string

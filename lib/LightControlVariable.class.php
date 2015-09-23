@@ -12,14 +12,14 @@
 * GNU General Public License, version 3
 */
 
-require_once('LightSourceVariableProfile.class.php');
+require_once('LightControlVariableProfile.class.php');
 
 /**
 * class LightSourceVariable
 *
 * @uses LightSourceVariableProfile
 */
-class LightSourceVariable{
+class LightControlVariable{
 	/**
 	* ips id of the variable
 	*
@@ -206,8 +206,8 @@ class LightSourceVariable{
 	* @access public
 	*/	
 	private function __construct1($instanceId, $profile = NULL, $enableLogging = false, $archiveId = NULL, $debug = false){
-		if(isset($profile) && !($profile instanceof LightSourceVariableProfile))
-		throw new Exception("Parameter \$profile must be an instance of LightSourceVariableProfile!");
+		if(isset($profile) && !($profile instanceof LightControlVariableProfile))
+		throw new Exception("Parameter \$profile must be an instance of LightControlVariableProfile!");
 		
 		//if($debug) echo "Parameter \$enableLogging = $enableLogging\n";
 		
@@ -248,8 +248,8 @@ class LightSourceVariable{
 	* @access public
 	*/
 	private function __construct2($name, $type, $parent, $profile = NULL, $enableLogging = false, $archiveId = NULL, $debug = false){
-		if(isset($profile) && !($profile instanceof LightSourceVariableProfile))
-		throw new Exception("Parameter \$profile must be an instance of LightSourceVariableProfile! \$name of the variable is '$name'");
+		if(isset($profile) && !($profile instanceof LightControlVariableProfile))
+		throw new Exception("Parameter \$profile must be an instance of LightControlVariableProfile! \$name of the variable is '$name'");
 		
 		$this->name = $name;
 		$this->type = $type;
@@ -265,8 +265,10 @@ class LightSourceVariable{
 			$this->id = IPS_CreateVariable($this->type);
 			IPS_SetName($this->id, $name);
 			IPS_SetParent($this->id, $parent);
-			IPS_SetInfo($this->id, "this variable was created by script " . $_IPS['SELF']);
-			IPS_SetVariableCustomProfile($this->id, $profile->getName());
+			IPS_SetInfo($this->id, "this variable was created by script " . $_IPS['SELF'] . " which is part of the LightControl library");
+			if(isset($profile)){
+				IPS_SetVariableCustomProfile($this->id, $profile->getName());
+			}
 			$this->verifyVariableLogging();
 		}
 	}

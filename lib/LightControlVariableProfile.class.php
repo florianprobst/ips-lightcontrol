@@ -15,7 +15,7 @@
 /**
 * class LightSourceVariableProfile
 */
-class LightSourceVariableProfile{
+class LightControlVariableProfile{
 	/**
 	* name of the variable profile
 	*
