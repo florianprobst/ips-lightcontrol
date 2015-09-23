@@ -96,7 +96,7 @@ class HomeMaticHM_LC_Sw1_FM extends AbstractLightSource{
 	* @access public
 	*/
 	public function isOn(){
-		
+		return GetValueBoolean($this->getInstanceId());
 	}
 	
 	/**
@@ -105,7 +105,7 @@ class HomeMaticHM_LC_Sw1_FM extends AbstractLightSource{
 	* @access public
 	*/
 	public function switchOn(){
-		
+		HM_WriteValueBoolean($this->getInstanceId(), 'STATE', true);
 	}
 	
 	/**
@@ -114,7 +114,7 @@ class HomeMaticHM_LC_Sw1_FM extends AbstractLightSource{
 	* @access public
 	*/
 	public function switchOff(){
-		
+		HM_WriteValueBoolean($this->getInstanceId(), 'STATE', false);
 	}
 }
 ?>

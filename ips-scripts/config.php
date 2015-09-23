@@ -20,6 +20,6 @@ $id_array_homematic_actuator_HM_LC_Sw1_FM = [
 $lightcontrol = new LightControl($parentId, $archive_id, $price_per_kwh, $prefix, $debug);
 
 foreach($id_array_homematic_actuator_HM_LC_Sw1_FM as &$id){
-	$energymanager->registerPowerMeter(new HomeMaticHM_LC_Sw1_FM($id));
+	$lightcontrol->registerLightSource(new HomeMaticHM_LC_Sw1_FM($id));
 }
 ?>

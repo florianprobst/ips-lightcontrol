@@ -14,6 +14,11 @@
 * GNU General Public License, version 3
 */
 
+require_once 'LightSources/ILightSource.interface.php';
+require_once 'LightSources/HomeMaticHM_LC_Sw1_FM.class.php';
+require_once 'lib/LightSourceVariable.class.php';
+require_once 'lib/LightSourceVaraibleProfile.class.php';
+
 /**
 * class LightControl
 *
@@ -130,8 +135,9 @@ class LightControl{
 		$this->prefix = $prefix;
 		
 		//create variable profiles
-		//array_push($this->variableProfiles, new LightControlVariableProfile($this->prefix . "Watthours", self::tFLOAT, "", " Wh", NULL, $this->debug));
+		array_push($this->variableProfiles, new LightControlVariableProfile($this->prefix . "Watthours", self::tFLOAT, "", " Wh", NULL, $this->debug));
 		array_push($this->variableProfiles, new LightControlVariableProfile("~HTMLBox", self::tFLOAT, "", "", NULL, $this->debug));
+		array_push($this->variableProfiles, new LightControlVariableProfile($this->prefix . "Hours", self::tFLOAT, "", " h", NULL, $this->debug));
 		$this->statistics = new LightControlVariable($this->prefix . "Statistics", self::tSTRING, $this->parentId, $this->variableProfiles[1], false, NULL, $this->debug);
 	}
 
@@ -148,9 +154,9 @@ class LightControl{
 		//add new light source to list, create variables and reference them to light source		
 		$tmp = array(
 			"device" => $light,
-			"current_consumption" => new EnergyVariable($light->getCurrentConsumptionInstanceId(), $this->variableProfiles[0], true, $this->archiveId, $this->debug),
-			"energy_counter" =>new EnergyVariable($this->prefix . "Energy_Counter_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[0], false, $this->archiveId, $this->debug),
-			"energy_counter_last_read" => new EnergyVariable($this->prefix . "Energy_Counter_last_read_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[0], false, NULL, $this->debug)
+			"runtime" => new LightSourceVariable($this->prefix . "Runtime_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[2], false, $this->archiveId, $this->debug),
+			"energy_counter" => new LightSourceVariable($this->prefix . "Energy_Counter_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[0], false, $this->archiveId, $this->debug),
+			"last_on" => new LightSourceVariable($this->prefix . "Last_On_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, NULL, false, $this->archiveId, $this->debug)
 		);
 		
 		array_push($this->lightsources, $tmp);
