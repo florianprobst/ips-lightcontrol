@@ -70,6 +70,14 @@ class LightControl{
 	private $archiveId;
 	
 	/**
+	* price per kilo watt hour
+	*
+	* @var float
+	* @access private
+	*/
+	private $price_per_kwh;
+	
+	/**
 	* statistics variable: contains html to present the statistics and data from all light sources
 	* handled by this class
 	*
@@ -115,7 +123,7 @@ class LightControl{
 	* @param boolean $debug enables / disables debug information
 	* @access public
 	*/
-	public function __construct($parentId, $archiveId, $prefix = "LC_", $debug = false){
+	public function __construct($parentId, $archiveId, $price_per_kwh, $prefix = "LC_", $debug = false){
 		$this->parentId = $parentId;
 		$this->archiveId = $archiveId;
 		$this->debug = $debug;
