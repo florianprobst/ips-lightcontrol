@@ -57,6 +57,14 @@ abstract class AbstractLightSource implements ILightSource{
 	private $model;
 	
 	/**
+  * light source watt consumption
+  *
+  * @var float
+  * @access private
+  */
+	private $wattConsumption;
+	
+	/**
 	* unknown device manufacturer
 	* @const UNKNOWN_MANUFACTURER
   * @access private
@@ -153,6 +161,26 @@ abstract class AbstractLightSource implements ILightSource{
 	*/
 	public function setDeviceModel($model){
 		$this->model = $model;
+	}
+	
+	/**
+	* setDeviceWattConsumption
+	* 
+	* @param float $watts watt consumption of the light source
+	* @access public
+	*/
+	public function setDeviceWattConsumption($watts){
+		$this->wattConsumption = $watts;
+	}
+	
+	/**
+	* getDeviceWattConsumption
+	* 
+	* @return float watt consumption of the light source
+	* @access public
+	*/
+	public function getDeviceWattConsumption(){
+		return $this->wattConsumption;
 	}
 	
 	/**

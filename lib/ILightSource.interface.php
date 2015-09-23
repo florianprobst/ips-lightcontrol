@@ -74,6 +74,22 @@ interface ILightSource{
 	public function setDeviceModel($model);
 	
 	/**
+	* setDeviceWattConsumption
+	* 
+	* @param float $watts watt consumption of the light source
+	* @access public
+	*/
+	public function setDeviceWattConsumption($watts);
+	
+	/**
+	* getDeviceWattConsumption
+	* 
+	* @return float watt consumption of the light source
+	* @access public
+	*/
+	public function getDeviceWattConsumption();
+	
+	/**
 	* switchOn
 	* 
 	* @access public
