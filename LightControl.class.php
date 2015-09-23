@@ -16,7 +16,7 @@
 
 require_once 'LightSources/ILightSource.interface.php';
 require_once 'LightSources/HomeMaticHM_LC_Sw1_FM.class.php';
-require_once 'LightSources/HomeMaticHM_LC_Dim1TPBU_FM.class.php';
+Require_once 'LightSources/HomeMaticHM_LC_Dim1TPBU_FM.class.php';
 require_once 'lib/LightControlVariable.class.php';
 require_once 'lib/LightControlVariableProfile.class.php';
 
@@ -212,6 +212,30 @@ class LightControl{
 		
 		//now we have to create the statistics
 		$this->statistics->setValue($this->createHTML());
+	}
+	
+	public function switchLightOn($instanceId){
+		foreach ($this->lightsources as &$light) {
+			if($light["device"]->getInstanceId() == $instanceId){
+				$light["device"]->switchOn();
+			}
+		} 
+	}
+	
+	public function switchLightOff($instanceId){
+		foreach ($this->lightsources as &$light) {
+			if($light["device"]->getInstanceId() == $instanceId){
+				$light["device"]->switchOff();
+			}
+		} 
+	}
+	
+	public function dimLight($instanceId, $level){
+		foreach ($this->lightsources as &$light) {
+			if($light["device"]->getInstanceId() == $instanceId){
+				$light["device"]->dim($level);
+			}
+		} 
 	}
 	
 	/**
