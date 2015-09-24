@@ -114,6 +114,10 @@ class LightControlTriggerEvent{
 			throw new Exception("Parameter \$type must be a valid trigger event type, see ip symcon documentation");
 		}
 		
+		if($type == self::tCAP || $type == self::tFLOOR || $type == self::tVALUE){
+			throw new Exception("Only TriggerEvents of type UPDATE and CHANGE are implemented yet.");
+		}
+		
 		$this->parentId = $parentId;
 		$this->trigger = $trigger;
 		$this->type = $type;

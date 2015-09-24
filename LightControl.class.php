@@ -21,6 +21,7 @@ require_once 'LightSources/HomeMaticHM_LC_Dim1TPBU_FM.class.php';
 require_once 'lib/LightControlVariable.class.php';
 require_once 'lib/LightControlVariableProfile.class.php';
 require_once 'lib/LightControlTriggerEvent.class.php';
+require_once 'lib/LightControlTimerEvent.class.php';
 require_once 'lib/LightControlScript.class.php';
 
 /**
@@ -171,15 +172,17 @@ class LightControl{
 		
 		//script contents
 		$script_includes = '<?require_once(IPS_GetScript('. $this->configId . ')["ScriptFile"]);';
+		$script_state_changed_event = $script_includes . '$lightcontrol->statusChanged($_IPS["VARIABLE"]);?>';
+		$script_recurring_state_check = $script_includes . '?>';
 		$script_uninstall = $script_includes . '$lightcontrol->uninstall();?>';
 		
 		//create scripts
-		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "state_changed_event", $script_includes . '?>', $this->debug));
-		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "recurring_state_check", $script_includes . '?>', $this->debug));
+		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "state_changed_event", $script_state_changed_event, $this->debug));
+		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "recurring_state_check", $script_recurring_state_check, $this->debug));
 		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "USE_CAREFULLY_uninstall_light_control", $script_uninstall, $this->debug));
 		
 		//create events
-		//todo recurring event
+		array_push($this->events, new LightControlTimerEvent($this->getScriptByName("recurring_state_check")->getInstanceId(), $this->prefix ."check_lights_state", 240, $this->debug));
 		
 	}
 	
@@ -242,9 +245,9 @@ class LightControl{
 		//add new light source to list, create variables and reference them to light source		
 		$tmp = array(
 			"device" => $light,
-			"runtime" => new LightControlVariable($this->prefix . "Runtime_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[2], false, $this->archiveId, $this->debug),
-			"energy_counter" => new LightControlVariable($this->prefix . "Energy_Counter_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[0], false, $this->archiveId, $this->debug),
-			"last_on" => new LightControlVariable($this->prefix . "Last_On_" . $light->getInstanceId(), self::tINT, $this->parentId, NULL, false, $this->archiveId, $this->debug),
+			"runtime" => new LightControlVariable($this->prefix . "Runtime_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[2], false, $this->archiveId, 0, $this->debug),
+			"energy_counter" => new LightControlVariable($this->prefix . "Energy_Counter_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[0], true, $this->archiveId, 1, $this->debug),
+			"last_on" => new LightControlVariable($this->prefix . "Last_On_" . $light->getInstanceId(), self::tINT, $this->parentId, NULL, false, $this->archiveId, 0, $this->debug),
 			"event_state_changed" => new LightControlTriggerEvent($this->getScriptByName("state_changed_event")->getInstanceId(), $light->getControlVariable(), LightControlTriggerEvent::tCHANGE, $this->prefix . "state_changed_" . $light->getControlVariable(), $this->debug)
 		);
 		array_push($this->lightsources, $tmp);
@@ -416,7 +419,11 @@ class LightControl{
 		$this->variableProfiles[2]->delete();	//hours
 		
 		//delete events
-		echo "TODO remove light control events\n";
+		echo "delete light control events\n";
+		foreach($this->events as &$e){
+			echo "delete event ". $e->getName() . "\n";
+			$e->delete();
+		}
 		
 		//delete scripts
 		echo "delete automatically created scripts\n";

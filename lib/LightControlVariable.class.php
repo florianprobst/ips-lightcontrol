@@ -242,12 +242,13 @@ class LightControlVariable{
 	* @param LightSourceVariableProfile $profile variable profile for this variable
 	* @param boolean $enableLogging enables or disables the ips functionality to log variable changes in a database
 	* @param integer $archiveId instance id of the archive control (usually located in IPS\core)
+	* @param integer $aggregationType logging aggregation: 0 = gauge, 1 = counter
 	* @param boolean $debug enables / disables debug information
 	*
 	* @throws Exception if the parameter \$profile is not an LightSourceVariableProfile datatype
 	* @access public
 	*/
-	private function __construct2($name, $type, $parent, $profile = NULL, $enableLogging = false, $archiveId = NULL, $debug = false){
+	private function __construct2($name, $type, $parent, $profile = NULL, $enableLogging = false, $archiveId = NULL, $aggregationType = 0, $debug = false){
 		if(isset($profile) && !($profile instanceof LightControlVariableProfile))
 		throw new Exception("Parameter \$profile must be an instance of LightControlVariableProfile! \$name of the variable is '$name'");
 		
@@ -257,7 +258,9 @@ class LightControlVariable{
 		$this->profile = $profile;
 		$this->enableLogging = $enableLogging;
 		$this->archiveId = $archiveId;
+		$this->aggregationType = $aggregationType;
 		$this->debug = $debug;
+		
 		
 		$this->id = @IPS_GetVariableIDByName($name, $parent);
 		if($this->id == false){
@@ -287,6 +290,7 @@ class LightControlVariable{
 				if($this->checkArchive($this->archiveId)){
 					if(!AC_GetLoggingStatus($this->archiveId, $this->id)){
 						AC_SetLoggingStatus($this->archiveId, $this->id, true);
+						AC_SetAggregationType($this->archiveId, $this->id, $this->aggregationType);
 						IPS_ApplyChanges($this->archiveId);
 					}
 				}
