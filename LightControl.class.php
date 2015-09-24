@@ -20,6 +20,8 @@ require_once 'LightSources/HomeMaticHM_LC_Sw2_FM.class.php';
 require_once 'LightSources/HomeMaticHM_LC_Dim1TPBU_FM.class.php';
 require_once 'lib/LightControlVariable.class.php';
 require_once 'lib/LightControlVariableProfile.class.php';
+require_once 'lib/LightControlTriggerEvent.class.php';
+require_once 'lib/LightControlScript.class.php';
 
 /**
 * class LightControl
@@ -43,6 +45,14 @@ class LightControl{
 	* @access private
 	*/
 	private $parentId;
+	
+	/**
+	* config script id for LightControl
+	*
+	* @var integer
+	* @access private
+	*/
+	private $configId;
 
 	/**
 	* variable name prefix to identify variables and variable profiles created by this script
@@ -63,10 +73,18 @@ class LightControl{
 	/**
 	* array of all LightControl variable profiles
 	*
-	* @var LightControlVariableProfile
+	* @var variableProfiles
 	* @access private
 	*/
 	private $variableProfiles = array();
+	
+	/**
+	* array of all scripts created by LightControl
+	*
+	* @var scripts
+	* @access private
+	*/
+	private $scripts = array();
 
 	/**
 	* instance id of the archive control (usually located in IPS\core)
@@ -130,7 +148,8 @@ class LightControl{
 	* @param boolean $debug enables / disables debug information
 	* @access public
 	*/
-	public function __construct($parentId, $archiveId, $price_per_kwh, $prefix = "LC_", $debug = false){
+	public function __construct($configId, $parentId, $archiveId, $price_per_kwh, $prefix = "LC_", $debug = false){
+		$this->configId = $configId;
 		$this->parentId = $parentId;
 		$this->archiveId = $archiveId;
 		$this->debug = $debug;
@@ -141,6 +160,12 @@ class LightControl{
 		array_push($this->variableProfiles, new LightControlVariableProfile("~HTMLBox", self::tFLOAT, "", "", NULL, $this->debug));
 		array_push($this->variableProfiles, new LightControlVariableProfile($this->prefix . "Hours", self::tFLOAT, "", " h", NULL, $this->debug));
 		$this->statistics = new LightControlVariable($this->prefix . "Statistics", self::tSTRING, $this->parentId, $this->variableProfiles[1], false, NULL, $this->debug);
+		
+		$script_includes = '<?require_once(IPS_GetScript('. $this->configId . ')["ScriptFile"]);';
+		//create scripts
+		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "state_changed_event", $script_includes . '?>', $this->debug));
+		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "recurring_state_check", $script_includes . '?>', $this->debug));
+		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "USE_CAREFULLY_uninstall_light_control", $script_includes . '$lightcontrol->uninstall();?>', $this->debug));
 	}
 	
 	/**
@@ -289,6 +314,13 @@ class LightControl{
 		return $val;
 	}
 	
+	/**
+	* uninstalls the light control script by removing all created variables and events attached
+	* to the light source devices
+	*
+	* @return true if uninstall was successful
+	* @access public
+	*/
 	public function uninstall(){
 		echo "LightControl uninstall procedure called\nBegin uninstall";
 		//delete all variables
@@ -308,13 +340,27 @@ class LightControl{
 		
 		//delete all profiles
 		echo "delete light control variable profiles\n";
-		$this->variableProfiles[0]->delete();
-		$this->variableProfiles[2]->delete();
+		$this->variableProfiles[0]->delete();	//watt hours
+		$this->variableProfiles[2]->delete();	//hours
 		
 		//delete events
 		echo "TODO remove light control events\n";
 		
+		//delete scripts
+		echo "delete automatically created scripts\n";
+		foreach($this->scripts as &$s){
+			if($s->getName() != $this->prefix . "USE_CAREFULLY_uninstall_light_control"){
+			echo "delete script ". $s->getName() . "\n";
+			$s->delete();
+			}
+		}
+		
+		echo "---------------------------------\n";
 		echo "LightControl uninstall successful\n";
+		echo "---------------------------------\n";
+		echo "ATTENTION: PLEASE DELETE the config script and uninstall script manually!\n";
+		
+		return true;
 	}
 }
 ?>
