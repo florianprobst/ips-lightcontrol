@@ -129,6 +129,7 @@ class LightControlTriggerEvent{
 			IPS_SetEventTrigger($this->id, $this->type, $this->trigger);	//configure event trigger
 			IPS_SetParent($this->id, $this->parentId);							//move event to parent (this will be called when trigger occurs)
 			IPS_SetInfo($this->id, "this event was created by script " . $_IPS['SELF'] . " which is part of the LightControl library");
+			$this->activate();
 		}
 	}
 	

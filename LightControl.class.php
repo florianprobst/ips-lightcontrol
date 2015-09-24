@@ -85,6 +85,14 @@ class LightControl{
 	* @access private
 	*/
 	private $scripts = array();
+	
+	/**
+	* array of all events created by LightControl
+	*
+	* @var events
+	* @access private
+	*/
+	private $events = array();
 
 	/**
 	* instance id of the archive control (usually located in IPS\core)
@@ -158,14 +166,36 @@ class LightControl{
 		//create variable profiles
 		array_push($this->variableProfiles, new LightControlVariableProfile($this->prefix . "Watthours", self::tFLOAT, "", " Wh", NULL, $this->debug));
 		array_push($this->variableProfiles, new LightControlVariableProfile("~HTMLBox", self::tFLOAT, "", "", NULL, $this->debug));
-		array_push($this->variableProfiles, new LightControlVariableProfile($this->prefix . "Hours", self::tFLOAT, "", " h", NULL, $this->debug));
+		array_push($this->variableProfiles, new LightControlVariableProfile($this->prefix . "Seconds", self::tFLOAT, "", " s", NULL, $this->debug));
 		$this->statistics = new LightControlVariable($this->prefix . "Statistics", self::tSTRING, $this->parentId, $this->variableProfiles[1], false, NULL, $this->debug);
 		
+		//script contents
 		$script_includes = '<?require_once(IPS_GetScript('. $this->configId . ')["ScriptFile"]);';
+		$script_uninstall = $script_includes . '$lightcontrol->uninstall();?>';
+		
 		//create scripts
 		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "state_changed_event", $script_includes . '?>', $this->debug));
 		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "recurring_state_check", $script_includes . '?>', $this->debug));
-		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "USE_CAREFULLY_uninstall_light_control", $script_includes . '$lightcontrol->uninstall();?>', $this->debug));
+		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "USE_CAREFULLY_uninstall_light_control", $script_uninstall, $this->debug));
+		
+		//create events
+		//todo recurring event
+		
+	}
+	
+	/**
+	* getScriptByName
+	*
+	* @return LightControlScript if found else false
+	* @access private
+	*/
+	private function getScriptByName($name){
+		foreach($this->scripts as &$s){
+			if($s->getName() == $this->prefix . $name){
+				return $s;
+			}
+		}
+		return false;
 	}
 	
 	/**
@@ -195,6 +225,7 @@ class LightControl{
 		}
 		$light->setDeviceWattConsumption($watts);
 		$this->registerLightSource($light);
+		
 		return true;
 	}
 	
@@ -213,9 +244,9 @@ class LightControl{
 			"device" => $light,
 			"runtime" => new LightControlVariable($this->prefix . "Runtime_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[2], false, $this->archiveId, $this->debug),
 			"energy_counter" => new LightControlVariable($this->prefix . "Energy_Counter_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[0], false, $this->archiveId, $this->debug),
-			"last_on" => new LightControlVariable($this->prefix . "Last_On_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, NULL, false, $this->archiveId, $this->debug)
+			"last_on" => new LightControlVariable($this->prefix . "Last_On_" . $light->getInstanceId(), self::tINT, $this->parentId, NULL, false, $this->archiveId, $this->debug),
+			"event_state_changed" => new LightControlTriggerEvent($this->getScriptByName("state_changed_event")->getInstanceId(), $light->getControlVariable(), LightControlTriggerEvent::tCHANGE, $this->prefix . "state_changed_" . $light->getControlVariable(), $this->debug)
 		);
-		
 		array_push($this->lightsources, $tmp);
 		
 		return true;
@@ -232,70 +263,109 @@ class LightControl{
 	}
 	
 	/**
-	* checks the status of all light sources and turns them off if necessary
+	* switchLightOn
 	*
+	* @param integer \$instanceId
+	* @return returns true if successful
 	* @access public
 	*/
-	public function update(){
-		foreach($this->lightsources as &$p){
-			//current counter value from power meter (warning: depending on manufacturer / model this value
-			//can be resetted to 0 when the device was disconnected.
-			$current = $p["device"]->getEnergyCounterWattHours();
-			
-			//last read value stored to ips
-			$last = $p["energy_counter_last_read"]->getValue();
-			
-			//the energy counter value we want to have
-			$counter = $p["energy_counter"]->getValue();
-			
-			if($current < $last){
-				//counter was reset (maybe power failure)
-				$last = 0;
-			}
-			
-			//calculate incremental value between last counter read and current counter read
-			$increment = $current - $last;
-			
-			//add increment to the counter
-			$counter += $increment;
-			
-			//save last read value to ips variable
-			$p["energy_counter_last_read"]->setValue($current);
-			
-			//save counter value to ips variable
-			$counter = $p["energy_counter"]->setValue($counter);
-		}
-		
-		//now we have to create the statistics
-		$this->statistics->setValue($this->createHTML());
-	}
-	
 	public function switchLightOn($instanceId){
-		foreach ($this->lightsources as &$light) {
-			if($light["device"]->getInstanceId() == $instanceId){
-				$light["device"]->switchOn();
-			}
-		} 
+		$light = $this->getLight($instanceId);
+		if(!$light){
+			throw new Exception("Light with instanceId $instanceId was not found!");
+		}
+		return $light["device"]->switchOn();
 	}
 	
+	/**
+	* switchLightOff
+	*
+	* @param integer \$instanceId
+	* @return returns true if successful
+	* @access public
+	*/
 	public function switchLightOff($instanceId){
-		foreach ($this->lightsources as &$light) {
-			if($light["device"]->getInstanceId() == $instanceId){
-				$light["device"]->switchOff();
-			}
-		} 
+		$light = $this->getLight($instanceId);
+		if(!$light){
+			throw new Exception("Light with instanceId $instanceId was not found!");
+		}
+		return $light["device"]->switchOff();
 	}
 	
+	/**
+	* dimLight
+	*
+	* @param integer \$instanceId
+	* @return returns true if successful
+	* @access public
+	*/
 	public function dimLight($instanceId, $level){
-		foreach ($this->lightsources as &$light) {
-			if($light["device"]->getInstanceId() == $instanceId){
-				$light["device"]->dim($level);
-			}
-		} 
+		$light = $this->getLight($instanceId);
+		if(!$light){
+			throw new Exception("Light with instanceId $instanceId was not found!");
+		}
+		return $light["device"]->dim($level);
 	}
 	
-	public function statusChanged($event){
-		
+	/**
+	* LightIsOn
+	*
+	* @param integer \$instanceId
+	* @return returns true if light is on
+	* @access public
+	*/
+	public function LightIsOn($instanceId){
+		$light = $this->getLight($instanceId);
+		if(!$light){
+			throw new Exception("Light with instanceId $instanceId was not found!");
+		}
+		return $light["device"]->isOn();
+	}
+	
+	/**
+	* statusChanged
+	* will be called when an attached light changes its status (on/off/dim)
+	* updates counters
+	*
+	* @param integer \$instanceId
+	* @access public
+	*/
+	public function statusChanged($controlId){
+		$instanceId = IPS_GetParent($controlId); //the control variable (STATE, LEVEL) triggers the event, but we need the light instance id (ACTUATOR) 
+		$light = $this->getLight($instanceId);
+		if(!$light){
+			throw new Exception("Light with instanceId $instanceId was not found!");
+		}
+		if($light["device"]->isOn()){
+			//the light has been switched on
+			$light["last_on"]->setValue(time());
+		}else{
+			//the light has been switched off
+			$laston = $light["last_on"]->getValue();
+			$now = time();
+			$runtime = $light["runtime"]->getValue() + ($now - $laston); //seconds
+			$light["runtime"]->setValue($runtime);
+			
+			//now calculate power consumption
+			$watt_hours = round($runtime/3600,0) * $light["device"]->getDeviceWattConsumption();
+			$light["energy_counter"]->setValue($watt_hours);
+		}
+	}
+	
+	/**
+	* getLight
+	*
+	* @param integer \$instanceId
+	* @return returns an array containing all light sources information (ILightSource, variables, events) or false if not found
+	* @access private
+	*/
+	private function getLight($instanceId){
+		foreach ($this->lightsources as &$light) {
+			if($light["device"]->getInstanceId() == $instanceId){
+				return $light;
+			}
+		}
+		return false;
 	}
 	
 	/**
@@ -332,6 +402,8 @@ class LightControl{
 			$ls["energy_counter"]->delete();
 			echo "--> delete variable '" . $ls["last_on"]->getName() . "'\n";
 			$ls["last_on"]->delete();
+			echo "--> delete event '" . $ls["event_state_changed"]->getName() . "'\n";
+			$ls["event_state_changed"]->delete();
 		}
 		
 		//delete statistics variable

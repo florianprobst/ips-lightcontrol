@@ -65,6 +65,14 @@ abstract class AbstractLightSource implements ILightSource{
 	private $wattConsumption;
 	
 	/**
+	* LightSource control variables id
+	*
+	* @var boolean
+	* @access protected
+	*/
+	protected $controlVariable;
+	
+	/**
 	* unknown device manufacturer
 	* @const UNKNOWN_MANUFACTURER
   * @access private
@@ -181,6 +189,16 @@ abstract class AbstractLightSource implements ILightSource{
 	*/
 	public function getDeviceWattConsumption(){
 		return $this->wattConsumption;
+	}
+	
+	/**
+	* getControlVariable
+	*
+	* @return integer the ips instance id of the light source devices controlling state variable (on/off/dim level)
+	* @access public
+	*/
+	public function getControlVariable(){
+		return $this->controlVariable;
 	}
 	
 	/**

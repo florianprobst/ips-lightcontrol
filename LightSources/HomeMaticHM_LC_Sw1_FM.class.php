@@ -62,14 +62,6 @@ class HomeMaticHM_LC_Sw1_FM extends AbstractLightSource{
 	private $address;
 	
 	/**
-	* LightSource control variables id
-	*
-	* @var boolean
-	* @access private
-	*/
-	private $controlVariable;
-	
-	/**
 	* Constructor
 	* 
 	* @param int $lightSourceInstanceId IP-Symcon instance id of the light source device (in this case channel 1 of the device)
@@ -118,7 +110,7 @@ class HomeMaticHM_LC_Sw1_FM extends AbstractLightSource{
 	* @access public
 	*/
 	public function isOn(){
-		return GetValueBoolean($this->controlVariable);
+		return GetValueBoolean($this->getControlVariable());
 	}
 	
 	/**

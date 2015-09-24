@@ -62,14 +62,6 @@ class HomeMaticHM_LC_Dim1TPBU_FM extends AbstractLightSource{
 	private $address;
 	
 	/**
-	* LightSource control variables id
-	*
-	* @var boolean
-	* @access private
-	*/
-	private $controlVariable;
-	
-	/**
 	* Constructor
 	* 
 	* @param int $lightSourceInstanceId IP-Symcon instance id of the light source device (in this case channel 1 of the device)
@@ -118,7 +110,7 @@ class HomeMaticHM_LC_Dim1TPBU_FM extends AbstractLightSource{
 	* @access public
 	*/
 	public function isOn(){
-		$level = GetValueFloat($this->controlVariable);
+		$level = GetValueFloat($this->getControlVariable());
 		if($level == 0)
 			return false;
 		return true;
@@ -131,7 +123,7 @@ class HomeMaticHM_LC_Dim1TPBU_FM extends AbstractLightSource{
 	* @access public
 	*/
 	public function getLevel(){
-		return GetValueFloat($this->controlVariable);
+		return GetValueFloat($this->getControlVariable());
 	}
 	
 	/**

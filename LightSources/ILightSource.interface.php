@@ -102,5 +102,13 @@ interface ILightSource{
 	* @access public
 	*/
 	public function switchOff();
+	
+	/**
+	* getControlVariable
+	*
+	* @return integer the ips instance id of the light source devices controlling state variable (on/off/dim level)
+	* @access public
+	*/
+	public function getControlVariable();
 }
 ?>

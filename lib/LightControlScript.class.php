@@ -76,6 +76,16 @@ class LightControlScript{
 	}
 	
 	/**
+	* getInstanceId
+	*
+	* @return integer scripts instance id
+	* @access public
+	*/
+	public function getInstanceId(){
+		return $this->id;
+	}
+	
+	/**
 	* getName
 	*
 	* @return $string script name
