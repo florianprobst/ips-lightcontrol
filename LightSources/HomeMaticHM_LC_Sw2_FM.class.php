@@ -34,6 +34,14 @@
 * @uses HomeMaticHM_LC_Sw1_FM as parent class
 */
 class HomeMaticHM_LC_Sw2_FM extends HomeMaticHM_LC_Sw1_FM{
+	
+	/**
+	* device model
+	* @const MODEL
+  * @access private
+	*/
+	const MODEL = "HM-LC-Sw2-FM";
+	
 	public function __construct($lightSourceInstanceId){
 		parent::__construct($lightSourceInstanceId);
 	}

@@ -17,7 +17,7 @@
 require_once 'LightSources/ILightSource.interface.php';
 require_once 'LightSources/HomeMaticHM_LC_Sw1_FM.class.php';
 require_once 'LightSources/HomeMaticHM_LC_Sw2_FM.class.php';
-Require_once 'LightSources/HomeMaticHM_LC_Dim1TPBU_FM.class.php';
+require_once 'LightSources/HomeMaticHM_LC_Dim1TPBU_FM.class.php';
 require_once 'lib/LightControlVariable.class.php';
 require_once 'lib/LightControlVariableProfile.class.php';
 
@@ -142,14 +142,44 @@ class LightControl{
 		array_push($this->variableProfiles, new LightControlVariableProfile($this->prefix . "Hours", self::tFLOAT, "", " h", NULL, $this->debug));
 		$this->statistics = new LightControlVariable($this->prefix . "Statistics", self::tSTRING, $this->parentId, $this->variableProfiles[1], false, NULL, $this->debug);
 	}
-
+	
+	/**
+	* addLight
+	*
+	* @param integer $instanceId the light controlling device ips instance id
+	* @param string $type the device model/type name (e.g.: HM-LC-Sw1-FM)
+	* @param float $watts the power consumption in watts of the light source (e.g. three 3.5 watt LED spots connected to this light source mean 10.5 watts)
+	* @return boolean true if register was successful
+	* @access public
+	*/
+	public function addLight($instanceId, $type, $watts = 0){
+		//check if type is valid
+		switch($type){
+			case HomeMaticHM_LC_Sw1_FM::MODEL:
+				$light = new HomeMaticHM_LC_Sw1_FM($instanceId);
+				break;
+			case HomeMaticHM_LC_Sw2_FM::MODEL:
+				$light = new HomeMaticHM_LC_Sw2_FM($instanceId);
+				break;
+			case HomeMaticHM_LC_Dim1TPBU_FM::MODEL:
+				$light = new HomeMaticHM_LC_Dim1TPBU_FM($instanceId);
+				break;
+			default:
+				throw new Exception("addLightSource parameter \$type wants to register a '$type' device for light control, but that device type is not supported!");
+				break;
+		}
+		$light->setDeviceWattConsumption($watts);
+		$this->registerLightSource($light);
+		return true;
+	}
+	
 	/**
 	* registerLightSource
 	*
 	* @return boolean true if register was successful
-	* @access public
+	* @access private
 	*/
-	public function registerLightSource($light){
+	private function registerLightSource($light){
 		if(!($light instanceof ILightSource))
 		throw new Exception("Parameter \$light is not of type ILightSource");
 		
@@ -239,6 +269,10 @@ class LightControl{
 		} 
 	}
 	
+	public function statusChanged($event){
+		
+	}
+	
 	/**
 	* creates an html string containing the statistics table for all light sources
 	*
@@ -253,6 +287,34 @@ class LightControl{
 		$doc->loadHTML($html);
 		$val = $doc->saveHTML();
 		return $val;
+	}
+	
+	public function uninstall(){
+		echo "LightControl uninstall procedure called\nBegin uninstall";
+		//delete all variables
+		foreach($this->lightsources as &$ls){
+			echo "Remove variables for light source '". $ls["device"]->getName() . "'\n";
+			echo "--> delete variable '" . $ls["runtime"]->getName() . "'\n";
+			$ls["runtime"]->delete();
+			echo "--> delete variable '" . $ls["energy_counter"]->getName() . "'\n";
+			$ls["energy_counter"]->delete();
+			echo "--> delete variable '" . $ls["last_on"]->getName() . "'\n";
+			$ls["last_on"]->delete();
+		}
+		
+		//delete statistics variable
+		echo "delete statistics variable for light control\n";
+		$this->statistics->delete();
+		
+		//delete all profiles
+		echo "delete light control variable profiles\n";
+		$this->variableProfiles[0]->delete();
+		$this->variableProfiles[2]->delete();
+		
+		//delete events
+		echo "TODO remove light control events\n";
+		
+		echo "LightControl uninstall successful\n";
 	}
 }
 ?>
