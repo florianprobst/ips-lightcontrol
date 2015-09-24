@@ -174,11 +174,13 @@ class LightControl{
 		$script_includes = '<?require_once(IPS_GetScript('. $this->configId . ')["ScriptFile"]);';
 		$script_state_changed_event = $script_includes . '$lightcontrol->statusChanged($_IPS["VARIABLE"]);?>';
 		$script_recurring_state_check = $script_includes . '$lightcontrol->checkLightsState()?>';
+		$script_auto_off = $script_includes . '$lightcontrol->autoOff($_IPS["EVENT"]);?>';
 		$script_uninstall = $script_includes . '$lightcontrol->uninstall();?>';
 		
 		//create scripts
 		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "state_changed_event", $script_state_changed_event, $this->debug));
 		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "recurring_state_check", $script_recurring_state_check, $this->debug));
+		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "auto_off", $script_auto_off, $this->debug));
 		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "USE_CAREFULLY_uninstall_light_control", $script_uninstall, $this->debug));
 		
 		//create events
@@ -250,9 +252,13 @@ class LightControl{
 			"energy_counter" => new LightControlVariable($this->prefix . "Energy_Counter_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[0], true, $this->archiveId, 1, $this->debug),
 			"last_on" => new LightControlVariable($this->prefix . "Last_On_" . $light->getInstanceId(), self::tINT, $this->parentId, NULL, false, $this->archiveId, 0, $this->debug),
 			"event_state_changed" => new LightControlTriggerEvent($this->getScriptByName("state_changed_event")->getInstanceId(), $light->getControlVariable(), LightControlTriggerEvent::tCHANGE, $this->prefix . "state_changed_" . $light->getControlVariable(), $this->debug),
+			"event_auto_off" => new LightControlTimerEvent($this->getScriptByName("auto_off")->getInstanceId(),  $this->prefix . "auto_off_" . $light->getInstanceId(), $auto_off, $this->debug),
 			"auto_off" => $auto_off
 		);
 		array_push($this->lightsources, $tmp);
+		
+		//disable auto off events
+		$tmp["event_auto_off"]->disable();
 		
 		return true;
 	}
@@ -344,6 +350,9 @@ class LightControl{
 		if($light["device"]->isOn()){
 			//the light has been switched on
 			$light["last_on"]->setValue(time());
+			if($light["auto_off"] > 0){
+				$light["event_auto_off"]->activate();
+			}
 		}else{
 			//the light has been switched off
 			$laston = $light["last_on"]->getValue();
@@ -353,6 +362,10 @@ class LightControl{
 			//now calculate power consumption
 			$watt_hours = round($runtime/3600,0) * $light["device"]->getDeviceWattConsumption();
 			$light["energy_counter"]->setValue($watt_hours);
+			
+			if($light["auto_off"] > 0){
+				$light["event_auto_off"]->disable();
+			}
 		}
 	}
 	
@@ -375,6 +388,20 @@ class LightControl{
 				}
 			}
 		}
+	}
+	
+	/**
+	* autoOff
+	* triggered by auto off timer events which want to turn off their attached light
+	*
+	* @param integer \$timerEventId id of the event which called this method
+	* @access public
+	*/
+	public function autoOff($timerEventId){
+		$name = IPS_GetName($timerEventId);
+		$pos = strrpos($name, "_");
+		$instanceId = substr($name, $pos + 1);
+		return $this->switchLightOff($instanceId);
 	}
 	
 	/**
@@ -429,6 +456,8 @@ class LightControl{
 			$ls["last_on"]->delete();
 			echo "--> delete event '" . $ls["event_state_changed"]->getName() . "'\n";
 			$ls["event_state_changed"]->delete();
+			echo "--> delete event '" . $ls["event_auto_off"]->getName() . "'\n";
+			$ls["event_auto_off"]->delete();
 		}
 		
 		//delete statistics variable

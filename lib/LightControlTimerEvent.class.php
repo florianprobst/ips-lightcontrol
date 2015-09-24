@@ -106,6 +106,9 @@ class LightControlTimerEvent{
 	* @access public
 	*/
 	public function activate(){
+		$time = time();
+		IPS_SetEventCyclicTimeFrom($this->id, intval(date('H', $time)), intval (date('i', $time)), intval(date('s', $time)));
+		//IPS_SetEventCyclicTimeFrom($this->id, 16, 06, 32);
 		return IPS_SetEventActive($this->id, true);
 	}
 	
