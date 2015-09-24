@@ -173,7 +173,7 @@ class LightControl{
 		//script contents
 		$script_includes = '<?require_once(IPS_GetScript('. $this->configId . ')["ScriptFile"]);';
 		$script_state_changed_event = $script_includes . '$lightcontrol->statusChanged($_IPS["VARIABLE"]);?>';
-		$script_recurring_state_check = $script_includes . '?>';
+		$script_recurring_state_check = $script_includes . '$lightcontrol->checkLightsState()?>';
 		$script_uninstall = $script_includes . '$lightcontrol->uninstall();?>';
 		
 		//create scripts
@@ -207,10 +207,11 @@ class LightControl{
 	* @param integer $instanceId the light controlling device ips instance id
 	* @param string $type the device model/type name (e.g.: HM-LC-Sw1-FM)
 	* @param float $watts the power consumption in watts of the light source (e.g. three 3.5 watt LED spots connected to this light source mean 10.5 watts)
+	* @param integer $auto_off this light should be automatically turned off after the given seconds. Default 0 keeps the light on until its switched of manually
 	* @return boolean true if register was successful
 	* @access public
 	*/
-	public function addLight($instanceId, $type, $watts = 0){
+	public function addLight($instanceId, $type, $watts = 0, $auto_off = 0){
 		//check if type is valid
 		switch($type){
 			case HomeMaticHM_LC_Sw1_FM::MODEL:
@@ -227,7 +228,7 @@ class LightControl{
 				break;
 		}
 		$light->setDeviceWattConsumption($watts);
-		$this->registerLightSource($light);
+		$this->registerLightSource($light, $auto_off);
 		
 		return true;
 	}
@@ -238,7 +239,7 @@ class LightControl{
 	* @return boolean true if register was successful
 	* @access private
 	*/
-	private function registerLightSource($light){
+	private function registerLightSource($light, $auto_off){
 		if(!($light instanceof ILightSource))
 		throw new Exception("Parameter \$light is not of type ILightSource");
 		
@@ -248,7 +249,8 @@ class LightControl{
 			"runtime" => new LightControlVariable($this->prefix . "Runtime_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[2], false, $this->archiveId, 0, $this->debug),
 			"energy_counter" => new LightControlVariable($this->prefix . "Energy_Counter_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[0], true, $this->archiveId, 1, $this->debug),
 			"last_on" => new LightControlVariable($this->prefix . "Last_On_" . $light->getInstanceId(), self::tINT, $this->parentId, NULL, false, $this->archiveId, 0, $this->debug),
-			"event_state_changed" => new LightControlTriggerEvent($this->getScriptByName("state_changed_event")->getInstanceId(), $light->getControlVariable(), LightControlTriggerEvent::tCHANGE, $this->prefix . "state_changed_" . $light->getControlVariable(), $this->debug)
+			"event_state_changed" => new LightControlTriggerEvent($this->getScriptByName("state_changed_event")->getInstanceId(), $light->getControlVariable(), LightControlTriggerEvent::tCHANGE, $this->prefix . "state_changed_" . $light->getControlVariable(), $this->debug),
+			"auto_off" => $auto_off
 		);
 		array_push($this->lightsources, $tmp);
 		
@@ -345,13 +347,33 @@ class LightControl{
 		}else{
 			//the light has been switched off
 			$laston = $light["last_on"]->getValue();
-			$now = time();
-			$runtime = $light["runtime"]->getValue() + ($now - $laston); //seconds
+			$runtime = $light["runtime"]->getValue() + (time() - $laston); //seconds
 			$light["runtime"]->setValue($runtime);
 			
 			//now calculate power consumption
 			$watt_hours = round($runtime/3600,0) * $light["device"]->getDeviceWattConsumption();
 			$light["energy_counter"]->setValue($watt_hours);
+		}
+	}
+	
+	/**
+	* checkLightsState
+	* checks all attached lights states (on/off).
+	* if a light which should be off is on, this method turns it off (means all auto_off > 0 lights).
+	* this can happen if the communication to the light actuator failed.
+	*
+	* @access public
+	*/
+	public function checkLightsState(){
+		foreach($this->lightsources as &$ls){
+			if($ls["auto_off"] > 0){
+				if($ls["device"]->isOn()){
+					$on_time = time() - $ls["last_on"]->getValue(); //seconds
+					if($on_time >= $ls["auto_off"] + 10){	//light is still on, but it should be off 10 seconds ago
+						$ls["device"]->switchOff();	//so turn it off
+					}
+				}
+			}
 		}
 	}
 	
