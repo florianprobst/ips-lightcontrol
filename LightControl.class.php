@@ -257,9 +257,6 @@ class LightControl{
 		);
 		array_push($this->lightsources, $tmp);
 		
-		//disable auto off events
-		$tmp["event_auto_off"]->disable();
-		
 		return true;
 	}
 	
