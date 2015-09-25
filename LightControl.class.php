@@ -163,6 +163,7 @@ class LightControl{
 		$this->archiveId = $archiveId;
 		$this->debug = $debug;
 		$this->prefix = $prefix;
+		$this->price_per_kwh = $price_per_kwh;
 		
 		//create variable profiles
 		array_push($this->variableProfiles, new LightControlVariableProfile($this->prefix . "Watthours", self::tFLOAT, "", " Wh", NULL, $this->debug));
@@ -418,6 +419,20 @@ class LightControl{
 	}
 	
 	/**
+	* updates the statistics variable
+	*
+	* @access public
+	*/
+	public function updateStatistics(){
+		$html = $this->createHTML();
+		$this->statistics->setValue($html);
+		
+		
+		
+		
+	}
+	
+	/**
 	* creates an html string containing the statistics table for all light sources
 	*
 	* @access private
@@ -425,8 +440,37 @@ class LightControl{
 	private function createHTML(){
 		$doc = new DOMDocument();
 		
-		$html = "<html><head></head>";
-		$html .= "</html>";
+		$html = "<html><head></head><body>";
+		
+		$html .= "<table width='100%'><tr><th width='40%'>Lichtquelle</th><th width='15%'>Leistung</th><th width='15%'>Laufzeit</th><th width='15%'>Verbrauch</th><th width='15%'>Kosten</th></tr>";
+		
+		$i = 0;
+		$totalwatts = 0;
+		$totalruntime = 0;
+		$totalconsumption = 0;
+		$totalcosts = 0;
+		foreach ($this->lightsources as &$light) {
+			if(++$i % 2 == 0) {
+				$bgcolor = "#90D4C0";
+			}else{
+				$bgcolor = "#9E90D4";
+			}
+			$name = $light["device"]->getName();
+			$watts = $light["device"]->getDeviceWattConsumption();
+			$runtime = round($light["runtime"]->getValue() / 3600, 2);
+			$consumption = round($light["energy_counter"]->getValue() / 1000, 2);
+			$costs = round($consumption * $this->price_per_kwh, 2);
+			
+			$totalwatts += $watts;
+			$totalruntime += $runtime;
+			$totalconsumption += $consumption;
+		 	$totalcosts += $costs;
+		 	
+		 	$html .= "<tr style='background-color:$bgcolor'><td>$name</td><td>$watts Watt</td><td>$runtime h</td><td>$consumption kW/h</td><td>$costs EUR</td></tr>";
+		} 
+		$html .= "<tr><td><b>Insgesamt $i Lichtquellen</b></td><td><b>$totalwatts Watt</b></td><td><b>$totalruntime h</b></td><td><b>$totalconsumption kW/h</b></td><td><b>$totalcosts EUR</b></td></tr></table>";
+		
+		$html .= "</body></html>";
 		
 		$doc->loadHTML($html);
 		$val = $doc->saveHTML();
