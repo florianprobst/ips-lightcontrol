@@ -184,11 +184,11 @@ class LightControl{
 		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "recurring_state_check", $script_recurring_state_check, $this->debug));
 		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "auto_off", $script_auto_off, $this->debug));
 		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "USE_CAREFULLY_uninstall_light_control", $script_uninstall, $this->debug));
-		//array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "update_statistics", $script_update_statistics, $this->debug));
+		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "update_statistics", $script_update_statistics, $this->debug));
 		
 		//create events
 		array_push($this->events, new LightControlTimerEvent($this->getScriptByName("recurring_state_check")->getInstanceId(), $this->prefix ."check_lights_state", 240, $this->debug));
-		//array_push($this->events, new LightControlTimerEvent($this->getScriptByName("update_statistics")->getInstanceId(), $this->prefix ."update_statistics", 86400, $this->debug));
+		array_push($this->events, new LightControlTimerEvent($this->getScriptByName("update_statistics")->getInstanceId(), $this->prefix ."update_statistics", 86400, $this->debug));
 	}
 	
 	/**

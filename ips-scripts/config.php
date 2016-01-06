@@ -1,25 +1,20 @@
 <?
 //Enthält die "globale" Konfiguration des EnergyManagers und wird von den anderen IPS-EnergyManager-Scripten aufgerufen.
 //Hier werden auch die Instanz-IDs aller zu überwachenden Stromzähler angegeben.
-
 require_once("../webfront/user/ips-lightcontrol/LightControl.class.php");
 
-$parentId = 11805 /*[System\Skripte\LightControl\Variables]*/; //Ablageort für erstellte Variablen
+$configId = 15642 /*[System\IPS-LightControl\config]*/; //ID dieser Config-Datei ($_IPS['SELF'] nicht genutzt, da dies auf einem RaspberryPI/Linux System derzeit funktioniert)
+$parentId = 11058 /*[System\IPS-LightControl\Variables]*/; //Ablageort für automatisch erstellte Variablen und Scripte
 $price_per_kwh = 0.2378; // Preis pro Kilowattstunde deines Stromanbieters
 $debug = true;
 $prefix = "LC_";
-$archive_id = 18531 /*[Archiv]*/; //Instanz ID des IPS-Archivs in welchem die Werte des Stromzählers geloggt werden sollen.
-
-//Ergänze alle IDs der zu überwachenden Stromzähler von Homematic (Typ HM_ES_PMSw1_PL) im nachfolgenden Array
-$id_array_homematic_actuator_HM_LC_Sw1_FM = [
-12536 /*[Hardware\Erdgeschoss\Flur\Light Treppenhaus UG\Kellertreppe]*/,
-18344 /*[Hardware\Erdgeschoss\Flur\Light Treppenhaus UG\Untergeschoss]*/
-];
+$archive_id = 34760 /*[Archive]*/; //Instanz ID des IPS-Archivs in welchem die Werte des Stromzählers geloggt werden sollen.
 
 //ab hier nichts mehr ändern
-$lightcontrol = new LightControl($parentId, $archive_id, $price_per_kwh, $prefix, $debug);
-
-foreach($id_array_homematic_actuator_HM_LC_Sw1_FM as &$id){
-	$lightcontrol->registerLightSource(new HomeMaticHM_LC_Sw1_FM($id));
-}
+$lightcontrol = new LightControl($configId, $parentId, $archive_id, $price_per_kwh, $prefix, $debug);
+$lightcontrol->addLight(15499 /*[Hardware\Treppenhaus\Licht EG]*/,"HM-LC-Sw1-FM", 6.0, 120);
+$lightcontrol->addLight(14630 /*[Hardware\Treppenhaus\Licht UG]*/,"HM-LC-Sw1-FM", 6.0, 120);
+$lightcontrol->addLight(25075 /*[Hardware\Erdgeschoss\Wohnzimmer\UP-Lichtschalter\Zimmerlicht]*/, "HM-LC-Sw2-FM", 15.0, 0);
+$lightcontrol->addLight(11367 /*[Hardware\Erdgeschoss\Wohnzimmer\UP-Lichtschalter\Zimmerlicht Fensterbank]*/, "HM-LC-Sw2-FM", 174.0, 0);
+$lightcontrol->addLight(42246 /*[Hardware\Erdgeschoss\Schlafzimmer\Zimmerlicht]*/, "HM-LC-Dim1TPBU-FM", 4.5, 0);
 ?>
