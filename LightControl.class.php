@@ -251,11 +251,11 @@ class LightControl{
 		//add new light source to list, create variables and reference them to light source		
 		$tmp = array(
 			"device" => $light,
-			"runtime" => new LightControlVariable($this->prefix . "Runtime_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[2], false, $this->archiveId, 0, $this->debug),
-			"energy_counter" => new LightControlVariable($this->prefix . "Energy_Counter_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[0], true, $this->archiveId, 1, $this->debug),
-			"last_on" => new LightControlVariable($this->prefix . "Last_On_" . $light->getInstanceId(), self::tINT, $this->parentId, NULL, false, $this->archiveId, 0, $this->debug),
-			"event_state_changed" => new LightControlTriggerEvent($this->getScriptByName("state_changed_event")->getInstanceId(), $light->getControlVariable(), LightControlTriggerEvent::tCHANGE, $this->prefix . "state_changed_" . $light->getControlVariable(), $this->debug),
-			"event_auto_off" => new LightControlTimerEvent($this->getScriptByName("auto_off")->getInstanceId(),  $this->prefix . "auto_off_" . $light->getInstanceId(), $auto_off, $this->debug),
+			"runtime" => new IPSVariable($this->prefix . "Runtime_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[2], false, $this->archiveId, 0, $this->debug),
+			"energy_counter" => new IPSVariable($this->prefix . "Energy_Counter_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[0], true, $this->archiveId, 1, $this->debug),
+			"last_on" => new IPSVariable($this->prefix . "Last_On_" . $light->getInstanceId(), self::tINT, $this->parentId, NULL, false, $this->archiveId, 0, $this->debug),
+			"event_state_changed" => new IPSTriggerEvent($this->getScriptByName("state_changed_event")->getInstanceId(), $light->getControlVariable(), IPSTriggerEvent::tCHANGE, $this->prefix . "state_changed_" . $light->getControlVariable(), $this->debug),
+			"event_auto_off" => new IPSTimerEvent($this->getScriptByName("auto_off")->getInstanceId(),  $this->prefix . "auto_off_" . $light->getInstanceId(), $auto_off, $this->debug),
 			"auto_off" => $auto_off
 		);
 		array_push($this->lightsources, $tmp);
