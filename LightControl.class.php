@@ -457,7 +457,7 @@ class LightControl{
 			}else{
 				$bgcolor = "#9E90D4";
 			}
-			$name = $light["device"]->getName();
+			$name = IPS_GetName(IPS_GetParent($light["device"]->getInstanceId())) . "\\" . $light["device"]->getName();
 			$watts = $light["device"]->getDeviceWattConsumption();
 			$runtime = round($light["runtime"]->getValue() / 3600, 2);
 			$consumption = round($light["energy_counter"]->getValue() / 1000, 2);
