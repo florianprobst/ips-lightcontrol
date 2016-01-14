@@ -1,7 +1,7 @@
 # ips-lightcontrol
 Lichtsteuerung für IP-Symcon
 
-[![Release](https://img.shields.io/github/release/florianprobst/ips-lightcontrol.svg?style=flat-square)](https://github.com/florianprobst/ips-lightcontrol/releases/latest)
+[![Github Release](https://img.shields.io/github/release/florianprobst/ips-lightcontrol.svg?style=flat-square)](https://github.com/florianprobst/ips-lightcontrol/releases/latest)
 [![License](https://img.shields.io/badge/license-LGPLv3-brightgreen.svg?style=flat-square)](https://github.com/florianprobst/ips-lightcontrol/blob/master/LICENSE)
 
 ## Aufgabe des Skripts
