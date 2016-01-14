@@ -17,7 +17,7 @@ Standardmässig lautet das `LC_`.
 
 1. Dieses Repository im IP-Symcon Unterordner `webfront/user/` klonen. Bsp.: `C:\IP-Symcon\webfront\user\ips-lightcontrol` oder alternativ als zip-Datei herunterladen und in den `IP-Symcon/webfront/user` Unterordner entpacken.
 2. In der IP-Symcon Verwaltungskonsole eine Kategorie `Lightcontrol` und eine Unterkategorie `Variables` erstellen (Namen und Ablageorte sind frei wählbar)
-3. Unterhalb der Kategorie `Lightcontrol` ist ein Konfigurationsskript manuell anzulegen. Dieses befindet sich sich im Unterordner `ips-scripts` und kann per copy&paste in die IPS-Console eingetragen werden. Alternativ ist das Skript auch weiter unten direkt beschrieben und kann von dort kopiert werden.
+3. Unterhalb der Kategorie `Lightcontrol` ist ein Konfigurationsskript manuell anzulegen. Dieses befindet sich sich im Unterordner `assets` und kann per copy&paste in die IPS-Console eingetragen werden. Alternativ ist das Skript auch weiter unten direkt beschrieben und kann von dort kopiert werden.
 
 #### Struktur in der IP-Symcon Console nach Installation
 (siehe dazu auch Screenshot unten)
@@ -32,7 +32,6 @@ Enthält die "globale" Konfiguration und wird von den anderen IPS-Lightcontrol-Sc
 <?
 //Enthält die "globale" Konfiguration des EnergyManagers und wird von den anderen IPS-EnergyManager-Scripten aufgerufen.
 //Hier werden auch die Instanz-IDs aller zu überwachenden Stromzähler angegeben.
-
 require_once("../webfront/user/ips-lightcontrol/LightControl.class.php");
 
 $configId = 15642 /*[System\IPS-LightControl\config]*/; //ID dieser Config-Datei ($_IPS['SELF'] nicht genutzt, da dies auf einem RaspberryPI/Linux System derzeit funktioniert)

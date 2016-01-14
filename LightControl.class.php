@@ -18,11 +18,11 @@ require_once 'LightSources/ILightSource.interface.php';
 require_once 'LightSources/HomeMaticHM_LC_Sw1_FM.class.php';
 require_once 'LightSources/HomeMaticHM_LC_Sw2_FM.class.php';
 require_once 'LightSources/HomeMaticHM_LC_Dim1TPBU_FM.class.php';
-require_once 'lib/LightControlVariable.class.php';
-require_once 'lib/LightControlVariableProfile.class.php';
-require_once 'lib/LightControlTriggerEvent.class.php';
-require_once 'lib/LightControlTimerEvent.class.php';
-require_once 'lib/LightControlScript.class.php';
+require_once 'ips-library/IPSVariable.class.php';
+require_once 'ips-library/IPSVariableProfile.class.php';
+require_once 'ips-library/IPSTriggerEvent.class.php';
+require_once 'ips-library/IPSTimerEvent.class.php';
+require_once 'ips-library/IPSScript.class.php';
 
 /**
 * class LightControl
@@ -115,7 +115,7 @@ class LightControl{
 	* statistics variable: contains html to present the statistics and data from all light sources
 	* handled by this class
 	*
-	* @var LightControlVariable
+	* @var IPSVariable
 	* @access private
 	*/
 	private $statistics;
@@ -166,10 +166,10 @@ class LightControl{
 		$this->price_per_kwh = $price_per_kwh;
 		
 		//create variable profiles
-		array_push($this->variableProfiles, new LightControlVariableProfile($this->prefix . "Watthours", self::tFLOAT, "", " Wh", NULL, $this->debug));
-		array_push($this->variableProfiles, new LightControlVariableProfile("~HTMLBox", self::tFLOAT, "", "", NULL, $this->debug));
-		array_push($this->variableProfiles, new LightControlVariableProfile($this->prefix . "Seconds", self::tFLOAT, "", " s", NULL, $this->debug));
-		$this->statistics = new LightControlVariable($this->prefix . "Statistics", self::tSTRING, $this->parentId, $this->variableProfiles[1], false, NULL, $this->debug);
+		array_push($this->variableProfiles, new IPSVariableProfile($this->prefix . "Watthours", self::tFLOAT, "", " Wh", NULL, $this->debug));
+		array_push($this->variableProfiles, new IPSVariableProfile("~HTMLBox", self::tFLOAT, "", "", NULL, $this->debug));
+		array_push($this->variableProfiles, new IPSVariableProfile($this->prefix . "Seconds", self::tFLOAT, "", " s", NULL, $this->debug));
+		$this->statistics = new IPSVariable($this->prefix . "Statistics", self::tSTRING, $this->parentId, $this->variableProfiles[1], false, NULL, $this->debug);
 		
 		//script contents
 		$script_includes = '<?require_once(IPS_GetScript('. $this->configId . ')["ScriptFile"]);';
@@ -180,15 +180,15 @@ class LightControl{
 		$script_update_statistics = $script_includes . '$lightcontrol->updateStatistics();?>';
 		
 		//create scripts
-		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "state_changed_event", $script_state_changed_event, $this->debug));
-		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "recurring_state_check", $script_recurring_state_check, $this->debug));
-		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "auto_off", $script_auto_off, $this->debug));
-		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "USE_CAREFULLY_uninstall_light_control", $script_uninstall, $this->debug));
-		array_push($this->scripts, new LightControlScript($this->parentId, $this->prefix . "update_statistics", $script_update_statistics, $this->debug));
+		array_push($this->scripts, new IPSScript($this->parentId, $this->prefix . "state_changed_event", $script_state_changed_event, $this->debug));
+		array_push($this->scripts, new IPSScript($this->parentId, $this->prefix . "recurring_state_check", $script_recurring_state_check, $this->debug));
+		array_push($this->scripts, new IPSScript($this->parentId, $this->prefix . "auto_off", $script_auto_off, $this->debug));
+		array_push($this->scripts, new IPSScript($this->parentId, $this->prefix . "USE_CAREFULLY_uninstall_light_control", $script_uninstall, $this->debug));
+		array_push($this->scripts, new IPSScript($this->parentId, $this->prefix . "update_statistics", $script_update_statistics, $this->debug));
 		
 		//create events
-		array_push($this->events, new LightControlTimerEvent($this->getScriptByName("recurring_state_check")->getInstanceId(), $this->prefix ."check_lights_state", 240, $this->debug));
-		array_push($this->events, new LightControlTimerEvent($this->getScriptByName("update_statistics")->getInstanceId(), $this->prefix ."update_statistics", 86400, $this->debug));
+		array_push($this->events, new IPSTimerEvent($this->getScriptByName("recurring_state_check")->getInstanceId(), $this->prefix ."check_lights_state", 240, $this->debug));
+		array_push($this->events, new IPSTimerEvent($this->getScriptByName("update_statistics")->getInstanceId(), $this->prefix ."update_statistics", 86400, $this->debug));
 	}
 	
 	/**
