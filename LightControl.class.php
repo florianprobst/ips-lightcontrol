@@ -256,7 +256,8 @@ class LightControl{
 			"last_on" => new IPSVariable($this->prefix . "Last_On_" . $light->getInstanceId(), self::tINT, $this->parentId, NULL, false, $this->archiveId, 0, $this->debug),
 			"event_state_changed" => new IPSTriggerEvent($this->getScriptByName("state_changed_event")->getInstanceId(), $light->getControlVariable(), IPSTriggerEvent::tCHANGE, $this->prefix . "state_changed_" . $light->getControlVariable(), $this->debug),
 			"event_auto_off" => new IPSTimerEvent($this->getScriptByName("auto_off")->getInstanceId(),  $this->prefix . "auto_off_" . $light->getInstanceId(), $auto_off, $this->debug),
-			"auto_off" => $auto_off
+			"auto_off" => $auto_off,
+			"current_consumption" => new IPSVariable($this->prefix . "Power_Consumption_" . $light->getInstanceId(), self::tFLOAT, $this->parentId, $this->variableProfiles[0], true, $this->archiveId, 0, $this->debug)
 		);
 		array_push($this->lightsources, $tmp);
 		
@@ -350,12 +351,14 @@ class LightControl{
 		if($light["device"]->isOn()){
 			//the light has been switched on
 			$light["last_on"]->setValue(time());
+			$light["current_consumption"]->setValue($light["device"]->getDeviceWattConsumption());
 			if($light["auto_off"] > 0){
 				$light["event_auto_off"]->activate();
 			}
 		}else{
 			//the light has been switched off
 			$laston = $light["last_on"]->getValue();
+			$light["current_consumption"]->setValue(0.0);
 			$runtime = $light["runtime"]->getValue() + (time() - $laston); //seconds
 			$light["runtime"]->setValue($runtime);
 			
